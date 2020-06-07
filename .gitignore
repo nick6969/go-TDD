@@ -1,0 +1,9 @@
+
+# ignore local env file
+.env
+
+# ignore VS Code Setting
+.vscode
+
+# ignore Goland Setting
+.idea
