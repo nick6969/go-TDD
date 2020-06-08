@@ -51,9 +51,9 @@ func Test_AuthMiddleware(t *testing.T) {
 			name: "no Correct input",
 			args: args{
 				req: helper.Request{
-					Method: "POST", 
-					Path: "/", 
-					Headers: map[string]string{"Authorization": "1234"}
+					Method:  "POST",
+					Path:    "/",
+					Headers: map[string]string{"Authorization": "1234"},
 				},
 				jwt: mockJWT{err: errors.New("error")},
 			},

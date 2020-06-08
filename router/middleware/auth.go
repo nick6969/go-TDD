@@ -18,6 +18,13 @@ func AuthCustomer(db Interface.DatastoreAuthCustomer, jwt Interface.JwtTool) gin
 			return
 		}
 
+		_, err := jwt.VerifyUserToken(token)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, res.APIBadRequest())
+			return
+		}
+
 	}
 
 }
