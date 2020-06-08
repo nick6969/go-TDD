@@ -51,3 +51,8 @@ func (db *Database) CreateCustomer(username, password string) (id uint, err erro
 	id = customer.ID
 	return
 }
+
+func (db *Database) FindUserWithUserName(name string) (user Customer, err error) {
+	err = db.Where(&Customer{Username: name}).First(&user).Error
+	return
+}

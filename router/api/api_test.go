@@ -7,15 +7,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"tdd/Database/mysql"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 )
 
 type mockDB struct {
-	nameCanUse string
-	createID   uint
-	createErr  error
+	nameCanUse  string
+	createID    uint
+	createErr   error
+	nameCanFind string
+	findUserErr error
 }
 
 func (mock mockDB) CheckUserNameCanUse(name string) bool {
@@ -27,6 +30,15 @@ func (mock mockDB) CreateCustomer(username, password string) (id uint, err error
 		err = mock.createErr
 	} else {
 		id = mock.createID
+	}
+	return
+}
+
+func (mock mockDB) FindUserWithUserName(name string) (user mysql.Customer, err error) {
+	if name == mock.nameCanFind {
+		user = mysql.Customer{ID: 1, Username: name, Password: "086420Pp"}
+	} else {
+		err = mock.findUserErr
 	}
 	return
 }
@@ -157,6 +169,19 @@ func Test_handlePostSignIn(t *testing.T) {
 				err:  nil,
 			},
 		},
+		{
+			name: "no correct input.",
+			args: args{
+				req: request{method: "POST", path: "/api/signIn", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				db:  mockDB{findUserErr: errors.New("user not find.")},
+				jwt: mockJWT{},
+			},
+			want: response{
+				body: []byte(`{"message":"user not find."}`),
+				code: 400,
+				err:  nil,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -209,6 +234,6 @@ func judgementApicallResponse(t *testing.T, res response, want response) {
 	}
 
 	if string(res.body) != string(want.body) {
-		t.Errorf("response body should got %s, but got %s", string(res.body), string(want.body))
+		t.Errorf("response body should got %s, but got %s", string(want.body), string(res.body))
 	}
 }
