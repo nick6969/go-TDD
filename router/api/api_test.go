@@ -182,6 +182,19 @@ func Test_handlePostSignIn(t *testing.T) {
 				err:  nil,
 			},
 		},
+		{
+			name: "no correct password",
+			args: args{
+				req: request{method: "POST", path: "/api/signIn", body: strings.NewReader(`{"username":"Nick","password":"086420PpXx"}`)},
+				db:  mockDB{nameCanFind: "Nick"},
+				jwt: mockJWT{},
+			},
+			want: response{
+				body: []byte(`{"message":"password not correct."}`),
+				code: 400,
+				err:  nil,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
