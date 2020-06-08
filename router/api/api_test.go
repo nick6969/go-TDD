@@ -2,12 +2,9 @@ package api
 
 import (
 	"errors"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"tdd/Database/mysql"
+	"tdd/Tools/helper"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -63,7 +60,7 @@ func (j mockJWT) VerifyUserToken(token string) (id uint, err error) {
 }
 
 type args struct {
-	req request
+	req helper.Request
 	db  mockDB
 	jwt mockJWT
 }
@@ -73,79 +70,79 @@ func Test_handlePostSignUp(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want response
+		want helper.Response
 	}{
 		{
 			name: "no input",
 			args: args{
-				req: request{method: "POST", path: "/api/signUp", body: nil},
+				req: helper.Request{Method: "POST", Path: "/api/signUp", Body: nil},
 				db:  mockDB{nameCanUse: "Nick"},
 				jwt: mockJWT{},
 			},
-			want: response{
-				body: []byte(`{"message":"input noCorrect."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"input noCorrect."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "username taken",
 			args: args{
-				req: request{method: "POST", path: "/api/signUp", body: strings.NewReader(`{"username":"Nick1"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signUp", Body: strings.NewReader(`{"username":"Nick1"}`)},
 				db:  mockDB{nameCanUse: "Nick", createID: 1},
 				jwt: mockJWT{},
 			},
-			want: response{
-				body: []byte(`{"message":"username is taken."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"username is taken."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "database failure",
 			args: args{
-				req: request{method: "POST", path: "/api/signUp", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signUp", Body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
 				db:  mockDB{nameCanUse: "Nick", createID: 1, createErr: errors.New("error")},
 				jwt: mockJWT{},
 			},
-			want: response{
-				body: []byte(`{"message":"Bad Request."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"Bad Request."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "Jwt generate fail",
 			args: args{
-				req: request{method: "POST", path: "/api/signUp", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signUp", Body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
 				db:  mockDB{nameCanUse: "Nick", createID: 1},
 				jwt: mockJWT{err: errors.New("error")},
 			},
-			want: response{
-				body: []byte(`{"message":"Bad Request."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"Bad Request."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "success",
 			args: args{
-				req: request{method: "POST", path: "/api/signUp", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signUp", Body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
 				db:  mockDB{nameCanUse: "Nick", createID: 1},
 				jwt: mockJWT{token: "123456"},
 			},
-			want: response{
-				body: []byte(`{"data":"123456","success":true}`),
-				code: 200,
-				err:  nil,
+			want: helper.Response{
+				Code: 200,
+				Body: []byte(`{"data":"123456","success":true}`),
+				Err:  nil,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := testApiCall(tt.args.req, handlePostSignUp(tt.args.db, tt.args.jwt))
-			judgementApicallResponse(t, res, tt.want)
+			res := helper.TestApiCall(tt.args.req, []gin.HandlerFunc{}, handlePostSignUp(tt.args.db, tt.args.jwt))
+			helper.JudgementApicallResponse(t, res, tt.want)
 		})
 	}
 }
@@ -154,125 +151,78 @@ func Test_handlePostSignIn(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want response
+		want helper.Response
 	}{
 		{
 			name: "no input",
 			args: args{
-				req: request{method: "POST", path: "/api/signIn", body: nil},
+				req: helper.Request{Method: "POST", Path: "/api/signIn", Body: nil},
 				db:  mockDB{},
 				jwt: mockJWT{},
 			},
-			want: response{
-				body: []byte(`{"message":"input noCorrect."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"input noCorrect."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "no correct input.",
 			args: args{
-				req: request{method: "POST", path: "/api/signIn", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signIn", Body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
 				db:  mockDB{findUserErr: errors.New("user not find.")},
 				jwt: mockJWT{},
 			},
-			want: response{
-				body: []byte(`{"message":"user not find."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"user not find."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "no correct password",
 			args: args{
-				req: request{method: "POST", path: "/api/signIn", body: strings.NewReader(`{"username":"Nick","password":"086420PpXx"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signIn", Body: strings.NewReader(`{"username":"Nick","password":"086420PpXx"}`)},
 				db:  mockDB{nameCanFind: "Nick"},
 				jwt: mockJWT{},
 			},
-			want: response{
-				body: []byte(`{"message":"password not correct."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"password not correct."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "Jwt generate fail",
 			args: args{
-				req: request{method: "POST", path: "/api/signIn", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signIn", Body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
 				db:  mockDB{nameCanFind: "Nick"},
 				jwt: mockJWT{err: errors.New("error")},
 			},
-			want: response{
-				body: []byte(`{"message":"Bad Request."}`),
-				code: 400,
-				err:  nil,
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"Bad Request."}`),
+				Err:  nil,
 			},
 		},
 		{
 			name: "success",
 			args: args{
-				req: request{method: "POST", path: "/api/signIn", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				req: helper.Request{Method: "POST", Path: "/api/signIn", Body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
 				db:  mockDB{nameCanFind: "Nick"},
 				jwt: mockJWT{token: "123456"},
 			},
-			want: response{
-				body: []byte(`{"data":"123456","success":true}`),
-				code: 200,
-				err:  nil,
+			want: helper.Response{
+				Code: 200,
+				Body: []byte(`{"data":"123456","success":true}`),
+				Err:  nil,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := testApiCall(tt.args.req, handlePostSignIn(tt.args.db, tt.args.jwt))
-			judgementApicallResponse(t, res, tt.want)
+			res := helper.TestApiCall(tt.args.req, []gin.HandlerFunc{}, handlePostSignIn(tt.args.db, tt.args.jwt))
+			helper.JudgementApicallResponse(t, res, tt.want)
 		})
-	}
-}
-
-type request struct {
-	method string
-	path   string
-	body   io.Reader
-}
-
-type response struct {
-	body []byte
-	code int
-	err  error
-}
-
-func testApiCall(req request, handle gin.HandlerFunc) (res response) {
-
-	resp := httptest.NewRecorder()
-	gin.SetMode(gin.TestMode)
-	_, router := gin.CreateTestContext(resp)
-	router.POST(req.path, handle)
-	request, err := http.NewRequest(req.method, req.path, req.body)
-
-	if err != nil {
-		res.err = err
-		return
-	}
-
-	router.ServeHTTP(resp, request)
-
-	res.code = resp.Result().StatusCode
-	res.body, res.err = ioutil.ReadAll(resp.Result().Body)
-
-	return
-}
-
-func judgementApicallResponse(t *testing.T, res response, want response) {
-	if res.code != want.code {
-		t.Errorf("status code should got %d, but got %d", want.code, res.code)
-	}
-
-	if res.err != want.err {
-		t.Errorf("err should got %d, but got %d", res.err, want.err)
-	}
-
-	if string(res.body) != string(want.body) {
-		t.Errorf("response body should got %s, but got %s", string(want.body), string(res.body))
 	}
 }
