@@ -60,6 +60,13 @@ func handlePostSignIn(db Interface.DatastoreCustomer, jwt Interface.JwtTool) gin
 			return
 		}
 
+		_, err := db.FindUserWithUserName(requestModel.Username)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, res.APIMessage("user not find."))
+			return
+		}
+
 	}
 
 }
