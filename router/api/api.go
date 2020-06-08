@@ -53,6 +53,12 @@ func handlePostSignUp(db Interface.DatastoreCustomer, jwt Interface.JwtTool) gin
 func handlePostSignIn(db Interface.DatastoreCustomer, jwt Interface.JwtTool) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+		var requestModel req.SignInRequest
+
+		if e := c.ShouldBindJSON(&requestModel); e != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, res.APIMessage("input noCorrect."))
+			return
+		}
 
 	}
 
