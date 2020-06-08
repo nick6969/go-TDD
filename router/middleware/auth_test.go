@@ -63,6 +63,22 @@ func Test_AuthMiddleware(t *testing.T) {
 				Err:  nil,
 			},
 		},
+		{
+			name: "not real user",
+			args: args{
+				req: helper.Request{
+					Method:  "POST",
+					Path:    "/",
+					Headers: map[string]string{"Authorization": "1234"},
+				},
+				jwt: mockJWT{id: 999999},
+			},
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"Bad Request."}`),
+				Err:  nil,
+			},
+		},
 	}
 
 	for _, tt := range tests {
