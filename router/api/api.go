@@ -72,13 +72,14 @@ func handlePostSignIn(db Interface.DatastoreCustomer, jwt Interface.JwtTool) gin
 			return
 		}
 
-		_, err = jwt.GenerateUserToken(user.ID)
+		token, err := jwt.GenerateUserToken(user.ID)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, res.APIBadRequest())
 			return
 		}
 
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": token})
 	}
 
 }
