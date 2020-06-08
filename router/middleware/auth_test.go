@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"tdd/Tools/helper"
 	"testing"
 
@@ -11,22 +12,16 @@ type mockDB struct {
 }
 
 type mockJWT struct {
-	token string
-	id    uint
-	err   error
+	id  uint
+	err error
 }
 
 func (j mockJWT) GenerateUserToken(id uint) (token string, err error) {
-	if j.err != nil {
-		err = j.err
-		return
-	}
-	token = j.token
 	return
 }
 
 func (j mockJWT) VerifyUserToken(token string) (id uint, err error) {
-	return j.id, nil
+	return j.id, j.err
 }
 
 type args struct {
@@ -52,7 +47,24 @@ func Test_AuthMiddleware(t *testing.T) {
 				Err:  nil,
 			},
 		},
+		{
+			name: "no Correct input",
+			args: args{
+				req: helper.Request{
+					Method: "POST", 
+					Path: "/", 
+					Headers: map[string]string{"Authorization": "1234"}
+				},
+				jwt: mockJWT{err: errors.New("error")},
+			},
+			want: helper.Response{
+				Code: 400,
+				Body: []byte(`{"message":"Bad Request."}`),
+				Err:  nil,
+			},
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			res := helper.TestApiCall(tt.args.req, []gin.HandlerFunc{}, AuthCustomer(tt.args.db, tt.args.jwt))
