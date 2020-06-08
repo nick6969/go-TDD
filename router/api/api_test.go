@@ -208,6 +208,19 @@ func Test_handlePostSignIn(t *testing.T) {
 				err:  nil,
 			},
 		},
+		{
+			name: "success",
+			args: args{
+				req: request{method: "POST", path: "/api/signIn", body: strings.NewReader(`{"username":"Nick","password":"086420Pp"}`)},
+				db:  mockDB{nameCanFind: "Nick"},
+				jwt: mockJWT{token: "123456"},
+			},
+			want: response{
+				body: []byte(`{"data":"123456","success":true}`),
+				code: 200,
+				err:  nil,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
