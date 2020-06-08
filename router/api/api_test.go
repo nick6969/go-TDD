@@ -138,6 +138,34 @@ func Test_handlePostSignUp(t *testing.T) {
 	}
 }
 
+func Test_handlePostSignIn(t *testing.T) {
+	tests := []struct {
+		name string
+		args args
+		want response
+	}{
+		{
+			name: "no input",
+			args: args{
+				req: request{method: "POST", path: "/api/signIn", body: nil},
+				db:  mockDB{},
+				jwt: mockJWT{},
+			},
+			want: response{
+				body: []byte(`{"message":"input noCorrect."}`),
+				code: 400,
+				err:  nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := testApiCall(tt.args.req, handlePostSignIn(tt.args.db, tt.args.jwt))
+			judgementApicallResponse(t, res, tt.want)
+		})
+	}
+}
+
 type request struct {
 	method string
 	path   string
