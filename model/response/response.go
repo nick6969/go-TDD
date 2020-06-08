@@ -9,5 +9,9 @@ func APIMessage(message string) MessageResponse {
 }
 
 func APIBadRequest() MessageResponse {
-	return MessageResponse{Message: "Bad Request."}
+	return APIMessage("Bad Request.")
+}
+
+func NoTokenProvider() MessageResponse {
+	return APIMessage("No Token Provider.")
 }
