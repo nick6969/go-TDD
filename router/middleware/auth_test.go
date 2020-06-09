@@ -9,6 +9,11 @@ import (
 )
 
 type mockDB struct {
+	hasUser bool
+}
+
+func (d mockDB) ConfirmCustomerHas(id uint) bool {
+	return d.hasUser
 }
 
 type mockJWT struct {
@@ -71,6 +76,7 @@ func Test_AuthMiddleware(t *testing.T) {
 					Path:    "/",
 					Headers: map[string]string{"Authorization": "1234"},
 				},
+				db:  mockDB{hasUser: false},
 				jwt: mockJWT{id: 999999},
 			},
 			want: helper.Response{

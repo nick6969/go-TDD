@@ -16,4 +16,5 @@ type DatastoreCustomer interface {
 }
 
 type DatastoreAuthCustomer interface {
+	ConfirmCustomerHas(id uint) bool
 }

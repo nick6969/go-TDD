@@ -56,3 +56,9 @@ func (db *Database) FindUserWithUserName(name string) (user Customer, err error)
 	err = db.Where(&Customer{Username: name}).First(&user).Error
 	return
 }
+
+func (db *Database) ConfirmCustomerHas(id uint) bool {
+	var count int
+	err := db.Table("customers").Where("id = ?", id).Count(&count).Error
+	return !(err == nil && count != 0)
+}
